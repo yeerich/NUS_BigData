@@ -37,8 +37,6 @@ course_subset_data, jobs_subset_data, tfidf_matrix, tfidf = load_data()
 title = "Course Recommendation Engine"
 st.title(title)
 
-st.write("test")
-
 st.write("First of all, welcome! This is the place where you can input the jobs of your interest and it will return the relevant courses based on the typical skills required.")
 st.markdown("##")
 
@@ -72,7 +70,7 @@ if user_input:
         
         sim_jobs_subset_data = sim_jobs_subset_data.sort_index()
             
-        for ngram in range(1,3):
+        for ngram in range(1,4):
             CV_job = CountVectorizer(ngram_range=(ngram, ngram))
             CV_X = CV_job.fit_transform(sim_jobs_subset_data['skills_extracts'])
 
