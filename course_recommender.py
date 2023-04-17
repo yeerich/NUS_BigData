@@ -37,6 +37,8 @@ course_subset_data, jobs_subset_data, tfidf_matrix, tfidf = load_data()
 title = "Course Recommendation Engine"
 st.title(title)
 
+st.write("this is a test-alex")
+
 st.write("First of all, welcome! This is the place where you can input the jobs of your interest and it will return the relevant courses based on the typical skills required.")
 st.markdown("##")
 
