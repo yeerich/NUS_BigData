@@ -70,7 +70,7 @@ if user_input:
         
         sim_jobs_subset_data = sim_jobs_subset_data.sort_index()
             
-        for ngram in range(1,4):
+        for ngram in range(1,3):
             CV_job = CountVectorizer(ngram_range=(ngram, ngram))
             CV_X = CV_job.fit_transform(sim_jobs_subset_data['skills_extracts'])
 
