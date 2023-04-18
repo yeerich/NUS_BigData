@@ -37,8 +37,6 @@ course_subset_data, jobs_subset_data, tfidf_matrix, tfidf = load_data()
 title = "Course Recommendation Engine"
 st.title(title)
 
-st.write("this is a test-alex")
-
 st.write("First of all, welcome! This is the place where you can input the jobs of your interest and it will return the relevant courses based on the typical skills required.")
 st.markdown("##")
 
@@ -124,3 +122,24 @@ if user_input:
             
             st.dataframe(recommendations, use_container_width=True)
             st.markdown("##")
+
+
+# Feedback Section
+st.markdown("##")
+st.write("We would like your feedback to improve our website:")
+
+feedback_input = st.text_area("Please enter your feedback here 👇.")
+
+st.write("How do you rate the recommendation results?:", size=10)
+feedback_rating = st_star_rating(label= "", maxValue = 5, defaultValue = 0, key = "rating")
+
+submit_btn = st.button("Submit")
+
+if submit_btn:
+    st.markdown(
+        f"""
+        - Search Input: {user_input}
+        - Feedback:     {feedback_input}
+        - Rating:       {feedback_rating}
+    """)
+    st.write("Thank you for your feedback!")
