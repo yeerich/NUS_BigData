@@ -8,6 +8,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 from similarjobs import find_similar_job_titles, similarity_ratio
 from streamlit_star_rating import st_star_rating
+from feedback import append_df_gsheets
 
 st.set_page_config(page_title="Bridging the Gap - Matching Jobs to Skills", layout="wide")
 
@@ -144,3 +145,5 @@ if submit_btn:
         - Rating:       {feedback_rating}
     """)
     st.write("Thank you for your feedback!")
+    
+    append_df_gsheets(user_input, feedback_input, feedback_rating, recommended_course_num, show_score)
