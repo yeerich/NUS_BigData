@@ -19,13 +19,27 @@ df = pd.DataFrame(data_dict)
 
 # COMMAND ----------
 
-with open('./wr_test.pickle', 'wb') as w:
-    # Write the DataFrame to the pickle file
-    pickle.dump(df, w, protocol=pickle.HIGHEST_PROTOCOL)
+course_df = spark.read.table("coursewithdescription").toPandas()
 
 # COMMAND ----------
 
-with open('./wr_test.pickle', 'rb') as f:
+with open('./course.pickle', 'wb') as w:
+    pickle.dump(course_df, w, protocol=pickle.HIGHEST_PROTOCOL)
+
+# COMMAND ----------
+
+jobs_df = spark.read.table("jobswithdescription").toPandas()
+jobs_df = jobs_df[:10000] # there is a size limitation
+print(jobs_df.memory_usage(deep=True).sum())
+
+# COMMAND ----------
+
+with open('./jobs.pickle', 'wb') as w:
+    pickle.dump(jobs_df, w, protocol=pickle.HIGHEST_PROTOCOL)
+
+# COMMAND ----------
+
+with open('./course.pickle', 'rb') as f:
     # Load the DataFrame from the pickle file
     data = pickle.load(f)
 display(data)
