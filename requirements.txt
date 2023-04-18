@@ -4,3 +4,4 @@ pandas-profiling==3.6.3
 scikit-learn==1.2.2
 scipy==1.9.2
 streamlit==1.21.0
+st-star-rating==0.0.3
