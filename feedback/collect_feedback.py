@@ -1,7 +1,6 @@
 import gspread
 from google.oauth2.service_account import Credentials
 from pydrive.auth import GoogleAuth
-from pydrive.drive import GoogleDrive
 import datetime
 import pandas as pd
 import streamlit as st
@@ -10,19 +9,15 @@ import streamlit as st
 def append_df_gsheets(user_input, feedback_input, feedback_rating, recommended_course_num, show_score):
     
     # Authenticate with Google
-    scopes = ['https://www.googleapis.com/auth/spreadsheets',
-              'https://www.googleapis.com/auth/drive']
+    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
 
     # Create a connection object.
     credentials = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
     
     gc = gspread.authorize(credentials)
 
-    gauth = GoogleAuth()
-    drive = GoogleDrive(gauth)
-
     # open a google sheet
-    gs = gc.open_by_key('1elCcmaDeDBN5LnYmH9cz003VauWo4_2Kl7AxxXYreec')
+    gs = gc.open_by_key("1elCcmaDeDBN5LnYmH9cz003VauWo4_2Kl7AxxXYreec")
 
     # current date and time
     ct = datetime.datetime.now()
