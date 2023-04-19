@@ -1,10 +1,10 @@
 import gspread
-# from gspread_dataframe import set_with_dataframe
 from google.oauth2.service_account import Credentials
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 import datetime
 import pandas as pd
+import streamlit as st
 
 
 def append_df_gsheets(user_input, feedback_input, feedback_rating, recommended_course_num, show_score):
@@ -13,8 +13,9 @@ def append_df_gsheets(user_input, feedback_input, feedback_rating, recommended_c
     scopes = ['https://www.googleapis.com/auth/spreadsheets',
               'https://www.googleapis.com/auth/drive']
 
-    credentials = Credentials.from_service_account_file('feedback/streamlit-course-recommender-331dc6768feb.json', scopes=scopes)
-
+    # Create a connection object.
+    credentials = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scopes)
+    
     gc = gspread.authorize(credentials)
 
     gauth = GoogleAuth()
