@@ -90,7 +90,7 @@ print("successfully course_subset_data.pickle file")
 
 # COMMAND ----------
 
-# MAGIC %md #tfid-generaation
+# MAGIC %md #tfid-generation
 
 # COMMAND ----------
 
@@ -103,11 +103,12 @@ tfidf = TfidfVectorizer(ngram_range=(1, 4)) # up to 4-grams, all combinations of
 tfidf.fit(course_subset_data['combined_features'])  # fit the vectorizer to the corpus
 tfidf_matrix = tfidf.transform(course_subset_data['combined_features'])
 
+# save tfidf_matrix as sparse matrix
 scipy.sparse.save_npz('../data/tfidf_matrix.npz', tfidf_matrix) #sparse matrix
 print("successfully created tfidf_matrix file in data folder\n")
 # print(tfidf_matrix)
 
-# save data for future use
+# save tfidf pickle file
 with open('../data/tfidf.pickle', 'wb') as handle:
     pickle.dump(tfidf, handle, protocol=pickle.HIGHEST_PROTOCOL)
 print("successfully created tfidfpickle file in data folder")
@@ -117,25 +118,3 @@ print("successfully created tfidfpickle file in data folder")
 # temp = df_filtered.groupBy(col('posting_date')).count().orderBy(col('posting_date').asc())
 # df_count = df_filtered.groupBy(col("posting_date")).agg(sum("count"))
 
-
-# COMMAND ----------
-
-# MAGIC %md #for tfidf matrix
-
-# COMMAND ----------
-
-course = spark.read.table("coursewithdescription")
-course_subset_data = course.toPandas()
-
-
-# COMMAND ----------
-
-course_subset_data.info()
-
-# COMMAND ----------
-
-tfidf = TfidfVectorizer(ngram_range=(1, 4)) # up to 4-grams, all combinations of the 4 words
-#tfidf = TfidfVectorizer(min_df = 2, max_df=0.8, stop_words='english')
-tfidf.fit(course_subset_data['combined_features'])  # fit the vectorizer to the corpus
-tfidf_matrix = tfidf.transform(course_subset_data['combined_features'])
-# tfidf_cosine_sim = cosine_similarity(tfidf_matrix)
