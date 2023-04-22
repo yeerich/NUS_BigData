@@ -186,7 +186,7 @@ base_skillFutureDescription_table = spark.read.table('coursewithdescription') #r
 df_filtered = spark_skillsFuture_cleaned.join(base_skillFutureDescription_table, on='referenceNumber', how='left_anti') #perform a join statement which returns only referenceNumber not found in gold layer table
 
 # @@@@@@@@@@@@@@@@@@@ this used as a bypass, just in case that the courses are not updated @@@@@@@@@@@@@@@@@@@
-# df_filtered = spark_skillsFuture_cleaned  
+df_filtered = spark_skillsFuture_cleaned  
 # @@@@@@@@@@@@@@@@@@@ this used as a bypass, just in case that the courses are not updated @@@@@@@@@@@@@@@@@@@
 
 if df_filtered.count() != 0: #check if there are any new records
@@ -204,19 +204,40 @@ if df_filtered.count() != 0: #check if there are any new records
         try:
             spark_skillcourse = spark_skillcourse.drop('load_date')
             print("load_date column successfully dropped")
-            spark_skillcourse = spark_skillcourse.select([col(c).cast(StringType()) for c in df.columns])
+            spark_skillcourse = spark_skillcourse.select([col(c).cast(StringType()) for c in spark_skillcourse.columns])
             # print(spark_skillcourse.printSchema())
-            spark_skillcourse.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/coursewithdescription")
+            spark_skillcourse.write.format("delta").mode("overwrite").save("dbfs:/user/hive/warehouse/coursewithdescription")
             print("successfully appended new delta course data into gold table")
         except:
             spark_skillcourse = spark_skillcourse.select([col(c).cast(StringType()) for c in df.columns])
             # print(spark_skillcourse.printSchema())
-            spark_skillcourse.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/coursewithdescription")
+            spark_skillcourse.write.format("delta").mode("overwrite").option("mergeSchema", "true").save("dbfs:/user/hive/warehouse/coursewithdescription")
             print("successfully appended new delta course data into gold table")
     except: print("spark df contains error")
 else:
     print("\n there isnt any new course available.")
     print("ending program...")
+
+# COMMAND ----------
+
+spark_skillcourse = spark_skillcourse.select([col(c).cast(StringType()) for c in spark_skillcourse.columns])
+# print(spark_skillcourse.printSchema())
+spark_skillcourse.write.format("delta").mode("overwrite").option("mergeSchema", "true").save("dbfs:/user/hive/warehouse/coursewithdescription")
+print("successfully appended new delta course data into gold table")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(*) from coursewithdescription
+
+# COMMAND ----------
+
+spark_skillcourse.printSchema()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select count(*) from coursewithdescription
 
 # COMMAND ----------
 
@@ -250,3 +271,7 @@ else:
 # test = pd.json_normalize(response["data"]["courses"])
 # for col in test.columns:
 #     print(col)
+
+# COMMAND ----------
+
+
