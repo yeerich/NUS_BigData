@@ -220,6 +220,33 @@ else:
 
 # COMMAND ----------
 
-# %sql
-# describe history  coursewithdescription;
-# RESTORE coursewithdescription TO VERSION AS OF 0
+# MAGIC %md #additional stuff
+
+# COMMAND ----------
+
+# #Start loop at 0
+# page = 0
+# #keyword = 'data'
+# pageSize = 100
+
+# request_url = 'https://public-api.ssg-wsg.sg/courses/directory?'
+# client_id = '680c1489f1594eb0b0c2223524d0cb83'
+# client_secret = 'ZDI4YzliMDMtNjQ5Mi00MDJhLWE4ZTctZjEzNzU2MmE1YjYw'
+
+# "function to fetch the token from the url inserted"
+# from oauthlib.oauth2 import BackendApplicationClient
+
+# client = BackendApplicationClient(client_id=client_id)
+# oauth = OAuth2Session(client=client)
+# token = oauth.fetch_token(
+#     token_url='https://public-api.ssg-wsg.sg/dp-oauth/oauth/token',
+#     client_id=client_id,
+#     client_secret=client_secret
+# )
+# response =  oauth.get(request_url + f"&pageSize={pageSize}"+ f"&page={page}" + f"&taggingCodes=FULL" + f"&courseSupportEndDate={one_year_ago_string}" "&retrieveType=FULL" ).json()
+
+# COMMAND ----------
+
+# test = pd.json_normalize(response["data"]["courses"])
+# for col in test.columns:
+#     print(col)
