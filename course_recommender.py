@@ -42,8 +42,6 @@ st.title(title)
 st.write("First of all, welcome! This is the place where you can input the jobs of your interest and it will return the relevant courses based on the typical skills required.")
 st.markdown("##")
 
-st.write(course_subset_data.shape())
-
 # Add search panel and search button
 user_input = st.text_input("Enter job here 👇.  For example, 'Data Scientist'",)
 
@@ -127,6 +125,7 @@ if user_input:
             st.dataframe(recommendations, use_container_width=True)
             st.markdown("##")
 
+st.write()
 
 # Feedback Section
 st.markdown("##")
