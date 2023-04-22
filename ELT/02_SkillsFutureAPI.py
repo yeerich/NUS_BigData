@@ -101,7 +101,7 @@ try:
     print("total number of pages to run \t\t:",total_number_of_pages)
     
     
-    while page <= 0: #(total_number_of_pages-1): # uncomment this for the complete list of 
+    while page <= 2: #(total_number_of_pages-1): # uncomment this for the complete list of 
       response =  oauth.get(request_url + f"&pageSize={pageSize}"+ f"&page={page}" + f"&taggingCodes=FULL" + f"&courseSupportEndDate={one_year_ago_string}" "&retrieveType=FULL" ).json()
       print("Current Page: \t",page)
       #Access the list in the json payload
