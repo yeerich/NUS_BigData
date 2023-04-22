@@ -23,7 +23,7 @@ ls
 # COMMAND ----------
 
 j_df = spark.read.table("jobswithdescription")
-cutoff_days = 60
+cutoff_days = 365
 
 # uncomment and run if you want to know the breakdown of the posting_date
 # j_df.groupBy(col('posting_date')).count().orderBy(col('posting_date').asc()).display()
