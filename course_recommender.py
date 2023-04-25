@@ -66,9 +66,10 @@ if user_input:
         st.write("Please enter a job of your interest.")
     else:
         for title in similar_titles:
-            new_row = pd.Series(jobs_subset_data.iloc[title], name=-1)
-            sim_jobs_subset_data = sim_jobs_subset_data.append(new_row)
-            sim_jobs_subset_data.index += 1
+            if job_title.lower() in jobs_subset_data.iloc[title]['title'].lower():
+                new_row = pd.Series(jobs_subset_data.iloc[title], name=-1)
+                sim_jobs_subset_data = sim_jobs_subset_data.append(new_row)
+                sim_jobs_subset_data.index += 1
         
         sim_jobs_subset_data = sim_jobs_subset_data.sort_index()
             
