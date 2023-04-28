@@ -50,6 +50,7 @@ print("effective cutoff date \t:",one_year_ago_string)
 
 # COMMAND ----------
 
+c =0
 def extractSkills(job_description): 
     try:
         annotations = skill_extractor.annotate(job_description)
@@ -59,6 +60,8 @@ def extractSkills(job_description):
         # print(ngram_scored_doc_node_values)
         combined_doc_node_values = set(full_matches_doc_node_values + ngram_scored_doc_node_values)
         output = ', '.join(map(str, combined_doc_node_values))
+        c +=1
+        print("current count of job description generation: ",c)
         # print("SkillsTaxonomy \t:",output)
         # print(combined_doc_node_values)
     except:
@@ -126,17 +129,6 @@ combined = pd.concat(dfs)
 
 # COMMAND ----------
 
-# count=1
-# if response['status'] ==200:
-#     try:
-#         print("action code here")
-#     except:
-#         count-=1
-#         time.sleep(100)
-#         print("Maxed out API call for this minute, sleeping for 100 seconds")
-
-# COMMAND ----------
-
 # def getTotalJobs():
 #     url = 'https://api.mycareersfuture.gov.sg/v2/search?limit=100&page=0' 
 #     payload = {"search":keyword_search,"sortBy":["new_posting_date"]}
@@ -159,8 +151,6 @@ combined = pd.concat(dfs)
 skillsFuture_raw = combined.astype(str) #change to all strings
 skillsFuture_raw['load_date'] = now.strftime("%Y%m%d")
 skillsFuture_raw.dtypes #confirm if all columns attributes are string
-
-
 
 
 # spark_skillsFuture.write.format("parquet").partitionBy("load_date").save("dbfs:/FileStore/tables/bronze_skillsFuture/")  # this is the bronze layer parquet file 
@@ -189,14 +179,18 @@ df_filtered = spark_skillsFuture_cleaned.join(base_skillFutureDescription_table,
 # df_filtered = spark_skillsFuture_cleaned  
 # @@@@@@@@@@@@@@@@@@@ this used as a bypass, just in case that the courses are not updated @@@@@@@@@@@@@@@@@@@
 
+print("count of delta courses: ",df_filtered.count())
+
 if df_filtered.count() != 0: #check if there are any new records
-    df_filtered.display()
+    # df_filtered.display()
     
-    df_filtered.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/coursedata")
+    df_filtered.write.format("delta").mode("append").option("mergeSchema", "true").save("dbfs:/user/hive/warehouse/coursedata")
     print("perform the decription extraction here...")
     
     skillcourse = df_filtered.toPandas()
     skillcourse['concat'] = skillcourse['objective'].map(str) + '' + skillcourse['title'].map(str) + '' + skillcourse['fieldOfStudies1'].map(str) + '' + skillcourse['content'].map(str) 
+    # display(skillcourse)
+    
     skillcourse["SkillsTaxonomy"] = skillcourse['objective'].apply(lambda x: extractSkills(x)) #extract the skills
     print("SkillsTaxonomy successfully extracted")
     try:
@@ -204,22 +198,61 @@ if df_filtered.count() != 0: #check if there are any new records
         try:
             spark_skillcourse = spark_skillcourse.drop('load_date')
             print("load_date column successfully dropped")
-            spark_skillcourse = spark_skillcourse.select([col(c).cast(StringType()) for c in df.columns])
+            spark_skillcourse = spark_skillcourse.select([col(c).cast(StringType()) for c in spark_skillcourse.columns])
             # print(spark_skillcourse.printSchema())
-            spark_skillcourse.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/coursewithdescription")
+            spark_skillcourse.write.format("delta").mode("append").option("mergeSchema", "true").save("dbfs:/user/hive/warehouse/coursewithdescription")
             print("successfully appended new delta course data into gold table")
         except:
             spark_skillcourse = spark_skillcourse.select([col(c).cast(StringType()) for c in df.columns])
             # print(spark_skillcourse.printSchema())
-            spark_skillcourse.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/coursewithdescription")
+            spark_skillcourse.write.format("delta").mode("append").option("mergeSchema", "true").save("dbfs:/user/hive/warehouse/coursewithdescription")
             print("successfully appended new delta course data into gold table")
     except: print("spark df contains error")
+
+
 else:
     print("\n there isnt any new course available.")
     print("ending program...")
 
 # COMMAND ----------
 
-# %sql
-# describe history  coursewithdescription;
-# RESTORE coursewithdescription TO VERSION AS OF 0
+# MAGIC %sql
+# MAGIC -- DESCRIBE history coursewithdescription
+# MAGIC -- restore table coursewithdescription to version as of 5
+
+# COMMAND ----------
+
+# MAGIC %md #additional stuff
+
+# COMMAND ----------
+
+# #Start loop at 0
+# page = 0
+# #keyword = 'data'
+# pageSize = 100
+
+# request_url = 'https://public-api.ssg-wsg.sg/courses/directory?'
+# client_id = '680c1489f1594eb0b0c2223524d0cb83'
+# client_secret = 'ZDI4YzliMDMtNjQ5Mi00MDJhLWE4ZTctZjEzNzU2MmE1YjYw'
+
+# "function to fetch the token from the url inserted"
+# from oauthlib.oauth2 import BackendApplicationClient
+
+# client = BackendApplicationClient(client_id=client_id)
+# oauth = OAuth2Session(client=client)
+# token = oauth.fetch_token(
+#     token_url='https://public-api.ssg-wsg.sg/dp-oauth/oauth/token',
+#     client_id=client_id,
+#     client_secret=client_secret
+# )
+# response =  oauth.get(request_url + f"&pageSize={pageSize}"+ f"&page={page}" + f"&taggingCodes=FULL" + f"&courseSupportEndDate={one_year_ago_string}" "&retrieveType=FULL" ).json()
+
+# COMMAND ----------
+
+# test = pd.json_normalize(response["data"]["courses"])
+# for col in test.columns:
+#     print(col)
+
+# COMMAND ----------
+
+

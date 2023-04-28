@@ -126,6 +126,7 @@ if user_input:
             st.dataframe(recommendations, use_container_width=True)
             st.markdown("##")
 
+st.write()
 
 # Feedback Section
 st.markdown("##")

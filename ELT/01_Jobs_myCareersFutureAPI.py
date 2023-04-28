@@ -25,6 +25,7 @@ from pyspark.sql.functions import udf
 from pyspark.sql.types import ArrayType, StringType
 from pyspark.sql.functions import explode
 from pyspark.sql.functions import concat
+from pyspark.sql.functions import col
 
 
 # load default skills data base
@@ -152,7 +153,8 @@ extractSkills(testDesc)
 # MAGIC     'salary_max',
 # MAGIC     'salary_type',
 # MAGIC     'skills',
-# MAGIC     'job_uuid'
+# MAGIC     'job_uuid',
+# MAGIC     'posting_date'
 # MAGIC ]
 # MAGIC jobs = pd.DataFrame(columns=columns)
 # MAGIC print('the shape of jobs df: ',jobs.shape)
@@ -207,6 +209,7 @@ extractSkills(testDesc)
 # MAGIC         salary_max = response_json['results'][current_job_number]['salary']['maximum'] #5500
 # MAGIC         salary_type = response_json['results'][current_job_number]['salary']['type']['salaryType'] #monthly
 # MAGIC         job_uuid = response_json['results'][current_job_number]['uuid']
+# MAGIC         posting_date = response_json['results'][0]['metadata']['newPostingDate']
 # MAGIC   
 # MAGIC         # get the list of skills
 # MAGIC         skills = []
@@ -215,10 +218,15 @@ extractSkills(testDesc)
 # MAGIC         # print(skills)
 # MAGIC         page_job_number +=1
 # MAGIC 
-# MAGIC         jobs.loc[page_job_number] = [job_id, title, company_name, uen, employment_type, level, category, salary_min, salary_max, salary_type, skills,job_uuid]
+# MAGIC         jobs.loc[page_job_number] = [job_id, title, company_name, uen, employment_type, level, category, salary_min, salary_max, salary_type, skills,job_uuid,posting_date]
 # MAGIC         print("current job number = {}, current page: {}, current job number: {}".format(page_job_number, page, current_job_number))
 # MAGIC jobs["load_date"] = load_date_time
+# MAGIC jobs['posting_date'] = jobs['posting_date'].apply(lambda x: x.replace('-', ''))
 # MAGIC # display(jobs)
+
+# COMMAND ----------
+
+jobs['posting_date'].value_counts()
 
 # COMMAND ----------
 
@@ -256,7 +264,7 @@ if df_filtered_jobs.count() != 0: #if there is delta record is not null
 
     # check if silver layer delta table exists, else create the silver jobs table
     if spark.catalog._jcatalog.tableExists("jobsdata"):
-        df_filtered_jobs.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/jobsdata")
+        df_filtered_jobs.write.format("delta").mode("append").option("mergeSchema", "true").save("dbfs:/user/hive/warehouse/jobsdata")
         print("\n delta data appended to jobsdata table")
     else:
         # create Delta table
@@ -264,14 +272,49 @@ if df_filtered_jobs.count() != 0: #if there is delta record is not null
         print("\n jobsdata table created")
 
 # gold layer processing
-print("starting gold layer ingestion")
-gold_jobs = df_filtered_jobs.select("job_id",'title',"skills","job_description","combined_description")
-gold_jobs = gold_jobs.withColumnRenamed("job_id", "jobPostId").withColumnRenamed("skills", "requiredSkills")
+    print("starting gold layer ingestion...")
+    gold_jobs = df_filtered_jobs.select("job_id",'title',"skills","job_description","combined_description","posting_date")
+    gold_jobs = gold_jobs.withColumnRenamed("job_id", "jobPostId").withColumnRenamed("skills", "requiredSkills")
 
-#execute the skills extraction
-gold_jobs = gold_jobs.withColumn("skills_extracted", extract_skills_udf(gold_jobs["combined_description"]))
+    #execute the skills extraction
+    gold_jobs = gold_jobs.withColumn("skills_extracted", extract_skills_udf(gold_jobs["combined_description"]))
 
-gold_jobs = gold_jobs.withColumnRenamed("job_description", "description").withColumnRenamed("skills_extracted", "skills_extracts")
-gold_jobs.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/jobswithdescription") #append delta records to the gold table
+    gold_jobs = gold_jobs.withColumnRenamed("job_description", "description").withColumnRenamed("skills_extracted", "skills_extracts")
+    gold_jobs.write.format("delta").mode("append").option("mergeSchema", "true").save("dbfs:/user/hive/warehouse/jobswithdescription") #append delta records to the gold table
+else:
+    print("all jobs records are in the gold table, there is no delta data")
 
-else: print("all jobs records are in the gold table, there is no delta data")
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+df = spark.read.table("jobswithdescription")
+# df.select("posting_date").distinct().show()
+
+value_counts = df.groupBy(col('posting_date')).count()
+display(value_counts)
+
+# COMMAND ----------
+
+# # Import required modules
+# from pyspark.sql.functions import col, when, expr
+
+# # Define the range of dates in yyyymmdd format
+# start_date = "20230310"
+# end_date = "20230413"
+
+# # Replace null values with a random date between start_date and end_date
+# df = df.withColumn(
+#     "posting_date",
+#     when(col("posting_date").isNull(), expr("date_format(date_add(to_date('{}', 'yyyyMMdd'), cast(rand() * datediff(to_date('{}', 'yyyyMMdd'), to_date('{}', 'yyyyMMdd')) as int)), 'yyyyMMdd')".format(start_date, end_date, start_date)))
+#         .otherwise(col("posting_date"))
+# )
+
+# # Show the updated DataFrame
+# df.show()
+
+# COMMAND ----------
+
+
