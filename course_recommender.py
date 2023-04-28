@@ -62,17 +62,17 @@ if user_input:
 
     sim_jobs_subset_data = pd.DataFrame(columns = jobs_subset_data.columns)
 
-    if len(similar_titles) == 0:
-        st.write("Please enter a job of your interest.")
-    else:
-        for title in similar_titles:
+    for title in similar_titles:
             if job_title.lower() in jobs_subset_data.iloc[title]['title'].lower():
                 new_row = pd.Series(jobs_subset_data.iloc[title], name=-1)
                 sim_jobs_subset_data = sim_jobs_subset_data.append(new_row)
                 sim_jobs_subset_data.index += 1
         
-        sim_jobs_subset_data = sim_jobs_subset_data.sort_index()
-            
+    sim_jobs_subset_data = sim_jobs_subset_data.sort_index()
+
+    if len(similar_titles) == 0 or len(sim_jobs_subset_data) == 0:
+        st.write("Please enter a job of your interest.")
+    else:     
         for ngram in range(1,3):
             CV_job = CountVectorizer(ngram_range=(ngram, ngram))
             CV_X = CV_job.fit_transform(sim_jobs_subset_data['skills_extracts'])
