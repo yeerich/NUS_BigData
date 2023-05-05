@@ -124,21 +124,21 @@ extractSkills(testDesc)
 # MAGIC %%time
 # MAGIC # get the current date and time
 # MAGIC now = datetime.datetime.now()
-# MAGIC 
+# MAGIC
 # MAGIC # format the current date and time
 # MAGIC formatted_date = now.strftime("%Y-%b-%d_%H-%M-%S")
 # MAGIC # load_date_time = now.strftime("%d%m%Y")
 # MAGIC load_date_time = now.strftime("%Y%m%d")
 # MAGIC # print the formatted date and time
 # MAGIC print("load_date_time: ", load_date_time)  
-# MAGIC 
+# MAGIC
 # MAGIC # declare parameters
 # MAGIC page_job_number = 0
 # MAGIC page = 0
 # MAGIC current_job_number = 0
 # MAGIC jobs_shown_limit = 100 # max at 100 jobs per page, else will break the api call
 # MAGIC keyword_search = ''
-# MAGIC 
+# MAGIC
 # MAGIC jobs = None #clear the jobs dataframe
 # MAGIC columns = [
 # MAGIC     'job_id',
@@ -156,8 +156,8 @@ extractSkills(testDesc)
 # MAGIC ]
 # MAGIC jobs = pd.DataFrame(columns=columns)
 # MAGIC print('the shape of jobs df: ',jobs.shape)
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC def getTotalJobs():
 # MAGIC     url = 'https://api.mycareersfuture.gov.sg/v2/search?limit=100&page=0' 
 # MAGIC     payload = {"search":keyword_search,"sortBy":["new_posting_date"]}
@@ -171,18 +171,18 @@ extractSkills(testDesc)
 # MAGIC     total_jobs_count = response_json['countWithoutFilters']
 # MAGIC     print("total number of jobs avialable:",total_jobs_count)       #total number of jobs
 # MAGIC     return(total_jobs_count)
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC total_number_pages = (getTotalJobs()+99) // 100
 # MAGIC print('total number of pages to run: ',total_number_pages,'\n\n')
 # MAGIC print('-------------------------------------------------------------')
-# MAGIC 
-# MAGIC 
+# MAGIC
+# MAGIC
 # MAGIC total_number_pages =6 #(total_number_pages-1) # extracting 1000 records everyday on a to get the delta jobs
 # MAGIC for page in range(0,total_number_pages-1):
 # MAGIC # declare the post request
 # MAGIC     url = 'https://api.mycareersfuture.gov.sg/v2/search?limit={}&page={}'.format(jobs_shown_limit, page)
-# MAGIC 
+# MAGIC
 # MAGIC     payload = {"search":keyword_search,"sortBy":["new_posting_date"]}
 # MAGIC     headers = {
 # MAGIC         'Content-Type': 'application/json',
@@ -190,11 +190,11 @@ extractSkills(testDesc)
 # MAGIC         'Origin': 'https://www.mycareersfuture.gov.sg',
 # MAGIC         'Referer': 'https://www.mycareersfuture.gov.sg/'
 # MAGIC     }
-# MAGIC 
+# MAGIC
 # MAGIC     response = requests.post(url, headers=headers, data=json.dumps(payload))
 # MAGIC     response_json = response.json() # convert the response to json for feature extraction
 # MAGIC     # print(response_json)  # print the whole json for
-# MAGIC 
+# MAGIC
 # MAGIC     for current_job_number in range(0,100): #single page is limited to 100 jobs inforamtion
 # MAGIC         job_id = response_json['results'][current_job_number]['metadata']['jobPostId']   #jobPostId
 # MAGIC         title = response_json['results'][current_job_number]['title']   #title
@@ -214,7 +214,7 @@ extractSkills(testDesc)
 # MAGIC             skills.append(item['skill'])
 # MAGIC         # print(skills)
 # MAGIC         page_job_number +=1
-# MAGIC 
+# MAGIC
 # MAGIC         jobs.loc[page_job_number] = [job_id, title, company_name, uen, employment_type, level, category, salary_min, salary_max, salary_type, skills,job_uuid]
 # MAGIC         print("current job number = {}, current page: {}, current job number: {}".format(page_job_number, page, current_job_number))
 # MAGIC jobs["load_date"] = load_date_time
@@ -275,3 +275,7 @@ gold_jobs = gold_jobs.withColumnRenamed("job_description", "description").withCo
 gold_jobs.write.format("delta").mode("append").save("dbfs:/user/hive/warehouse/jobswithdescription") #append delta records to the gold table
 
 else: print("all jobs records are in the gold table, there is no delta data")
+
+# COMMAND ----------
+
+print("enhancement")
